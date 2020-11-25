@@ -1,67 +1,52 @@
+from pynput.mouse import Listener as MouseListener
+from pynput.keyboard import Listener as KeyboardListener
 import pyautogui
 import keyboard
-import msvcrt
 
 def get_pos():
-    pos = input('point the fusion button and press enter')
+    print('click on the fusion button')
+    with MouseListener(on_click=button_pos) as listener:
+        listener.join()
     return pyautogui.position()
 
-def select():
-    pyautogui.keyDown('ctrl')
-    pyautogui.doubleClick()
-    pyautogui.keyUp('ctrl')
-    
 def fusion(button):
+    pyautogui.doubleClick()
+    save = pyautogui.position()
     pyautogui.click(button)
+    pyautogui.moveTo(save)
 
-def activate(ex):
-    if ex == 0:
-        print('off')
-        return 2
-    elif ex == 2:
-        print('on')
-        return 0
+def button_pos(x, y, button, pressed):
+    if not pressed:
+        return False
 
-def bind():
-    print('press the select key\n')
-    k_1 = keyboard.read_hotkey()
-    print(k_1)
-    print('press the fusion key\n')
-    k_2 = keyboard.read_hotkey()
-    print(k_2[2])
-    return k_1, k_2[2]
+def on_press(key):
+    try:
+        if key.name == 'ctrl_l' or 'esc':
+            mouse_listener.stop()
+            keyboard_listener.stop()
+    except AttributeError:
+        pass
+
+def on_click(x, y, button, pressed):
+    if not pressed:
+        keyboard_listener.stop()
+        mouse_listener.stop()
 
 class pos():
     x = 0
     y = 0
 
 if __name__ == "__main__":
-    button = pos()
-    button = get_pos()
-    k_1 = '1'
-    k_2 = '2'
-    k_3 = '3'
-    k_4 = '4'
-    print('\npress 1 to select\npress 2 to fusion\npress 3 to activate/desactivate\npress 4 to bind\npress esc to quit')
-    ex = 0
-    while ex != 1:
-        if ex != 2:
-            if keyboard.is_pressed(k_1) == True:
-                select()
-                while keyboard.is_pressed(k_1) == True:
-                    ex = ex
-            if keyboard.is_pressed(k_2) == True:
-                fusion(button)
-                while keyboard.is_pressed(k_2) == True:
-                    ex = ex
-        if keyboard.is_pressed(k_3) == True:
-            ex = activate(ex)
-            while keyboard.is_pressed(k_3) == True:
-                ex = ex
-        if keyboard.is_pressed(k_4) == True:
-            while keyboard.is_pressed(k_4) == True:
-                ex = ex
-            k_1, k_2 = bind()
-        if keyboard.is_pressed('escape') == True:
-            print('exiting...')
-            ex = 1
+    f_button = pos()
+    f_button = get_pos()
+    print('press esc to quit')
+    while not keyboard.is_pressed('esc'):
+        mouse_listener = MouseListener(on_click=on_click)
+        keyboard_listener = KeyboardListener(on_press=on_press)
+        mouse_listener.start()
+        keyboard_listener.start()
+        mouse_listener.join()
+        keyboard_listener.join()
+        if not keyboard.is_pressed('ctrl') and not keyboard.is_pressed('esc'):
+            fusion(f_button)
+    print('exit')
